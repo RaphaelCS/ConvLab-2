@@ -23,6 +23,7 @@ class Environment():
         return self.sys_dst.state
         
     def step(self, action):
+        self.sys_dst.state['system_action'] = action
         model_response = self.sys_nlg.generate(action) if self.sys_nlg else action
         observation = self.usr.response(model_response)
         if self.evaluator:
