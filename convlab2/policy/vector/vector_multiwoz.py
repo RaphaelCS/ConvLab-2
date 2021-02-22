@@ -192,6 +192,7 @@ class MultiWozVector(Vector):
         constraint = self.state[domain.lower()]['semi'].items()
         return self.db.query(domain.lower(), constraint)
 
+    # WARN: This method must be called after state_vectorize, since only that method update self.state
     def action_devectorize(self, action_vec):
         """
         recover an action
