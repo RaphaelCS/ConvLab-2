@@ -208,9 +208,12 @@ class MultiWozVector(Vector):
             act_idx = np.argmax(action_vec)
             act_array = self.vec2act[act_idx].split(';')
         else:
-            for i, idx in enumerate(action_vec):
-                if idx == 1:
-                    act_array.append(self.vec2act[i])
+            if np.isscalar(action_vec):
+                act_array.append(self.vec2act[action_vec])
+            else:
+                for i, idx in enumerate(action_vec):
+                    if idx == 1:
+                        act_array.append(self.vec2act[i])
         action = deflat_da(act_array)
         entities = {}
         for domint in action:
