@@ -299,7 +299,7 @@ class Analyzer:
         num_domains_satisfying_constraints = 0
         num_dialogs_satisfying_constraints = 0
 
-        for j in tqdm(range(total_dialog), desc="dialogue"):
+        for j in range(total_dialog):
             sys_response = '' if self.user_agent.nlu else []
             random.seed(goal_seeds[0])
             np.random.seed(goal_seeds[0])
