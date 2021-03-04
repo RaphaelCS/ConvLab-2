@@ -49,14 +49,14 @@ class UserPolicyAgendaMultiWoz(Policy):
     with open(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir, os.pardir, 'data/multiwoz/value_set.json')) as f:
         stand_value_dict = json.load(f)
 
-    def __init__(self):
+    def __init__(self, domains="All", mode="Composite"):
         """
         Constructor for User_Policy_Agenda class.
         """
         self.max_turn = 40
         self.max_initiative = 4
 
-        self.goal_generator = GoalGenerator()
+        self.goal_generator = GoalGenerator(domains=domains, mode=mode)
 
         self.__turn = 0
         self.goal = None

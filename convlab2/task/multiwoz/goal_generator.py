@@ -142,7 +142,9 @@ class GoalGenerator:
                  corpus_path=None,
                  boldify=False,
                  sample_info_from_trainset=True,
-                 sample_reqt_from_trainset=False):
+                 sample_reqt_from_trainset=False,
+                 domains="All",
+                 mode="Composite"):
         """
         Args:
             goal_model_path: path to a goal model
@@ -179,6 +181,25 @@ class GoalGenerator:
         # pprint(self.ind_slot_dist)
         # pprint(self.slots_num_dist)
         # pprint(self.slots_combination_dist)
+
+        if 'All' == domains:
+            domains = ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police']
+        elif 'Source' == domains:
+            domains = ['Attraction', 'Restaurant', 'Taxi', 'Hospital']
+        elif 'Target' == domains:
+            domains = ['Hotel', 'Train', 'Police']
+        else:
+            assert domains in ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police'], \
+                f"Error domains: {domains}"
+            domains = [domains]
+
+        self.domains = [d.lower() for d in domains]
+        self.mode = mode
+
+        assert set(self.domains).issubset(
+            ['attraction', 'restaurant', 'train', 'hotel', 'taxi', 'hospital', 'police']
+        )
+        assert self.mode in ["Single", "Composite"]
 
     def _build_goal_model(self):
         dialogs = json.load(open(self.corpus_path))
@@ -476,6 +497,15 @@ class GoalGenerator:
         domain_ordering = ()
         while len(domain_ordering) <= 0:
             domain_ordering = nomial_sample(self.domain_ordering_dist)
+
+            if self.mode == "Single" and len(domain_ordering) > 1:
+                domain_ordering = tuple()
+                continue
+
+            for d in domain_ordering:
+                if d not in self.domains:
+                    domain_ordering = tuple()
+                    break
         # domain_ordering = ('restaurant',)
 
         user_goal = {dom: self._get_domain_goal(dom) for dom in domain_ordering}
