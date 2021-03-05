@@ -61,7 +61,7 @@ class MultiWozVector(Vector):
         self._filter_by_domains(self.da_voc_opp)
 
         self.character = character
-        self.generate_dict()
+        self._generate_dict()
         self.cur_domain = None
 
     def _filter_by_domains(self, li):
@@ -108,7 +108,7 @@ class MultiWozVector(Vector):
                 if len(self.da_voc) == self.vocab_size:
                     break
 
-    def generate_dict(self):
+    def _generate_dict(self):
         """
         init the dict for mapping state/action into vector
         """
