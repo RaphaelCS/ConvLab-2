@@ -290,4 +290,6 @@ class MultiWozVector(Vector):
             for da in action:
                 if da in self.act2vec:
                     act_vec[self.act2vec[da]] = 1.
+                else:
+                    raise ValueError("Bad act: %s" % da)
         return act_vec
