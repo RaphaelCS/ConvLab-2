@@ -17,10 +17,30 @@ class MultiWozVector(Vector):
     def __init__(self, voc_file, voc_opp_file, character='sys',
                  intent_file=DEFAULT_INTENT_FILEPATH,
                  composite_actions=False,
-                 vocab_size=500):
+                 vocab_size=500,
+                 domains="All"):
 
-        self.belief_domains = ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police']
-        self.db_domains = ['Attraction', 'Restaurant', 'Train', 'Hotel']
+        if 'All' == domains:
+            domains = ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police']
+        elif 'Source' == domains:
+            domains = ['Attraction', 'Restaurant', 'Taxi', 'Hospital']
+        elif 'Target' == domains:
+            domains = ['Hotel', 'Train', 'Police']
+        else:
+            assert domains in ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police'], \
+                f"Error domains: {domains}"
+            domains = [domains]
+        self.belief_domains = domains
+        assert set(self.belief_domains).issubset(
+            ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police']
+        )
+
+        self.db_domains = [
+            dom
+            for dom in ['Attraction', 'Restaurant', 'Train', 'Hotel']
+            if dom in self.belief_domains
+        ]
+
         self.composite_actions = composite_actions
         self.vocab_size = vocab_size
 
@@ -32,15 +52,42 @@ class MultiWozVector(Vector):
 
         with open(voc_file) as f:
             self.da_voc = f.read().splitlines()
+        self._filter_by_domains(self.da_voc)
+        if self.composite_actions:
+            self._load_composite_actions()
+
         with open(voc_opp_file) as f:
             self.da_voc_opp = f.read().splitlines()
+        self._filter_by_domains(self.da_voc_opp)
 
-        if self.composite_actions:
-            self.load_composite_actions()
         self.character = character
         self.generate_dict()
         self.cur_domain = None
 
+    def _filter_by_domains(self, li):
+        for elem in list(li):
+            if not self._is_in_domains(elem):
+                li.remove(elem)
+
+    def _is_in_domains(self, elem):
+        domains = self.belief_domains + ['general', 'Booking']
+        for d in domains:
+            if d in elem:
+                if d != 'Booking':
+                    return True
+                else:
+                    if "none" in elem:
+                        return True
+                    for booking_domain in self.db_domains:
+                        for booking_slot in default_state()['belief_state'][booking_domain.lower()]['book'].keys():
+                            if booking_slot in elem.lower():
+                                return True
+                        for booking_slot in default_state()['belief_state'][booking_domain.lower()]['semi'].keys():
+                            if booking_slot in elem.lower():
+                                return True
+                        if ("Train" in self.db_domains or "Restaurant" in self.db_domains or "Hotel" in self.db_domains) and "Ref" in elem:
+                            return True
+        return False
 
     def load_composite_actions(self):
         """
@@ -51,8 +98,10 @@ class MultiWozVector(Vector):
                     'data/multiwoz/da_slot_cnt.json')
         with open(composite_actions_filepath, 'r') as f:
             composite_actions_stats = json.load(f)
+
             for action in composite_actions_stats:
-                if len(action.split(';')) > 1:
+                temp_act = action.split(';')
+                if len(temp_act) > 1 and all([self._is_in_domains(act) for act in temp_act]):
                     # append only composite actions as single actions are already in self.da_voc
                     self.da_voc.append(action)
 
