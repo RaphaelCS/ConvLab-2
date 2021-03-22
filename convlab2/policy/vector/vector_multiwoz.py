@@ -242,7 +242,7 @@ class MultiWozVector(Vector):
         return self.db.query(domain.lower(), constraint)
 
     # WARN: This method must be called after state_vectorize, since only that method update self.state
-    def action_devectorize(self, action_vec):
+    def action_devectorize(self, action_vec: np.ndarray):
         """
         recover an action
         Args:
@@ -260,6 +260,8 @@ class MultiWozVector(Vector):
         else:
             if np.isscalar(action_vec):
                 act_array.append(self.vec2act[action_vec])
+            elif action_vec.shape == (1,):
+                act_array.append(self.vec2act[action_vec[0]])
             else:
                 for i, idx in enumerate(action_vec):
                     if idx == 1:
