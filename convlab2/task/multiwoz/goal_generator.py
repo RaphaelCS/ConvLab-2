@@ -189,8 +189,6 @@ class GoalGenerator:
         elif 'Target' == domains:
             domains = ['Hotel', 'Train', 'Police']
         else:
-            assert domains in ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police'], \
-                f"Error domains: {domains}"
             domains = [domains]
 
         self.domains = [d.lower() for d in domains]
@@ -199,7 +197,7 @@ class GoalGenerator:
         assert set(self.domains).issubset(
             ['attraction', 'restaurant', 'train', 'hotel', 'taxi', 'hospital', 'police']
         )
-        assert self.mode in ["Single", "Composite"]
+        assert self.mode in ["Single", "Composite", "CompositeOnly"]
 
     def _build_goal_model(self):
         dialogs = json.load(open(self.corpus_path))
@@ -499,6 +497,9 @@ class GoalGenerator:
             domain_ordering = nomial_sample(self.domain_ordering_dist)
 
             if self.mode == "Single" and len(domain_ordering) > 1:
+                domain_ordering = tuple()
+                continue
+            elif self.mode == "CompositeOnly" and len(domain_ordering) <= 1:
                 domain_ordering = tuple()
                 continue
 
