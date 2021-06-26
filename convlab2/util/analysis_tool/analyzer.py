@@ -298,6 +298,7 @@ class Analyzer:
         num_domains = 0
         num_domains_satisfying_constraints = 0
         num_dialogs_satisfying_constraints = 0
+        total_reward = 0
 
         for j in range(total_dialog):
             sys_response = '' if self.user_agent.nlu else []
@@ -313,11 +314,13 @@ class Analyzer:
             last_sys_da = None
 
             step = 0
+            epi_reward = 0
             for i in range(40):
                 sys_response, user_response, session_over, reward = sess.next_turn(
                     sys_response)
 
                 step += 2
+                epi_reward += reward
 
                 if hasattr(sess.sys_agent, "get_in_da") and isinstance(sess.sys_agent.get_in_da(), list) \
                         and sess.user_agent.get_out_da() != [] \
@@ -360,15 +363,15 @@ class Analyzer:
                 num_domains += len(sess.evaluator.goal)
                 num_domains_satisfying_constraints += len(sess.evaluator.goal) * percentage
             num_dialogs_satisfying_constraints += (percentage == 1)
-            
+
             domain_set = []
             for da in sess.evaluator.usr_da_array:
                 if da.split('-')[0] != 'general' and da.split('-')[0] not in domain_set:
                     domain_set.append(da.split('-')[0])
 
             turn_num += step
+            total_reward += epi_reward
 
-            da_list = usr_da_list
             cycle_start = []
             for da in usr_da_list:
                 if len(da) == 1 and da[0][2] == 'general':
@@ -407,5 +410,6 @@ class Analyzer:
             "ave_turn_succ": tmp,
             "ave_turn_all": turn_num / total_dialog,
             "percentage_of_domains_that_satisfy_the_database_constraints": 1 if num_domains == 0 else (num_domains_satisfying_constraints / num_domains),
-            "percentage_of_dialogs_that_satisfy_the_database_constraints": num_dialogs_satisfying_constraints / total_dialog
+            "percentage_of_dialogs_that_satisfy_the_database_constraints": num_dialogs_satisfying_constraints / total_dialog,
+            "reward": total_reward / total_dialog,
         }
