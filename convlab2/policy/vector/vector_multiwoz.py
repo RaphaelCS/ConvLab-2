@@ -27,8 +27,6 @@ class MultiWozVector(Vector):
         elif 'Target' == domains:
             domains = ['Hotel', 'Train', 'Police']
         else:
-            assert domains in ['Attraction', 'Restaurant', 'Train', 'Hotel', 'Taxi', 'Hospital', 'Police'], \
-                f"Error domains: {domains}"
             domains = [domains]
         self.belief_domains = domains
         assert set(self.belief_domains).issubset(
@@ -294,4 +292,7 @@ class MultiWozVector(Vector):
                     act_vec[self.act2vec[da]] = 1.
                 else:
                     raise ValueError("Bad act: %s" % da)
+                    # with open("temp.txt", "a") as f:
+                    #     f.write(da)
+                    #     f.write("\n")
         return act_vec
